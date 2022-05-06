@@ -50,17 +50,18 @@ export class SwitchToPreReleaseExtensionDiagnosticService extends BaseDiagnostic
         );
     }
 
-    public diagnose(resource: Resource): Promise<IDiagnostic[]> {
-        const config = this.workspaceService.getConfiguration('python', resource);
-        const value = config.inspect<string>('insidersChannel');
-        if (value) {
-            const insiderType = value.globalValue ?? value.globalLanguageValue;
-            if (insiderType) {
-                return Promise.resolve([
-                    new SwitchToPreReleaseExtensionDiagnostic(SwitchToPrereleaseExtension.bannerMessage(), resource),
-                ]);
-            }
-        }
+    // eslint-disable-next-line class-methods-use-this
+    public diagnose(_resource: Resource): Promise<IDiagnostic[]> {
+        // const config = this.workspaceService.getConfiguration('python', resource);
+        // const value = config.inspect<string>('insidersChannel');
+        // if (value) {
+        //     const insiderType = value.globalValue ?? value.globalLanguageValue;
+        //     if (insiderType) {
+        //         return Promise.resolve([
+        //             new SwitchToPreReleaseExtensionDiagnostic(SwitchToPrereleaseExtension.bannerMessage(), resource),
+        //         ]);
+        //     }
+        // }
         return Promise.resolve([]);
     }
 

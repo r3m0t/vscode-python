@@ -2,16 +2,11 @@
 // Licensed under the MIT License.
 
 import { inject, injectable, named } from 'inversify';
-import { uniq } from 'lodash';
 import {
-    CancellationToken,
     TestController,
     TestItem,
-    TestRunRequest,
-    tests,
     WorkspaceFolder,
     RelativePattern,
-    TestRunProfileKind,
     CancellationTokenSource,
     Uri,
     EventEmitter,
@@ -24,7 +19,7 @@ import { traceVerbose } from '../../logging';
 import { sendTelemetryEvent } from '../../telemetry';
 import { EventName } from '../../telemetry/constants';
 import { PYTEST_PROVIDER, UNITTEST_PROVIDER } from '../common/constants';
-import { DebugTestTag, getNodeByUri, RunTestTag } from './common/testItemUtilities';
+import { getNodeByUri } from './common/testItemUtilities';
 import { ITestController, ITestFrameworkController, TestRefreshOptions } from './common/types';
 
 @injectable()
@@ -60,7 +55,41 @@ export class PythonTestController implements ITestController, IExtensionSingleAc
     ) {
         this.refreshCancellation = new CancellationTokenSource();
 
-        this.testController = tests.createTestController('python-tests', 'Python Tests');
+        this.testController = {
+            items: {
+                add() {
+                    throw new Error('testController items add');
+                },
+                replace() {
+                    throw new Error('testController items replace');
+                },
+                get() {
+                    return undefined;
+                },
+                delete() {
+                    /* noop */
+                },
+                size: 0,
+                forEach() {
+                    /* noop */
+                },
+            },
+            id: '',
+            label: '',
+            dispose() {
+                /* noop */
+            },
+            createRunProfile() {
+                throw new Error('TestController.createRunProfile');
+            },
+            createTestItem() {
+                throw new Error('TestController.createTestItem');
+            },
+            createTestRun() {
+                throw new Error('TestController.createTestRun');
+            },
+        } as TestController; // tests.createTestController('python-tests', 'Python Tests');
+
         this.disposables.push(this.testController);
 
         const delayTrigger = new DelayedTrigger(
@@ -76,23 +105,23 @@ export class PythonTestController implements ITestController, IExtensionSingleAc
         this.disposables.push(delayTrigger);
         this.refreshData = delayTrigger;
 
-        this.disposables.push(
-            this.testController.createRunProfile(
-                'Run Tests',
-                TestRunProfileKind.Run,
-                this.runTests.bind(this),
-                true,
-                RunTestTag,
-            ),
-            this.testController.createRunProfile(
-                'Debug Tests',
-                TestRunProfileKind.Debug,
-                this.runTests.bind(this),
-                true,
-                DebugTestTag,
-            ),
-        );
-        this.testController.resolveHandler = this.resolveChildren.bind(this);
+        // this.disposables.push(
+        //     this.testController.createRunProfile(
+        //         'Run Tests',
+        //         TestRunProfileKind.Run,
+        //         this.runTests.bind(this),
+        //         true,
+        //         RunTestTag,
+        //     ),
+        //     this.testController.createRunProfile(
+        //         'Debug Tests',
+        //         TestRunProfileKind.Debug,
+        //         this.runTests.bind(this),
+        //         true,
+        //         DebugTestTag,
+        //     ),
+        // );
+        // this.testController.resolveHandler = this.resolveChildren.bind(this);
     }
 
     public async activate(): Promise<void> {
@@ -137,12 +166,14 @@ export class PythonTestController implements ITestController, IExtensionSingleAc
     private async refreshTestDataInternal(uri?: Resource): Promise<void> {
         this.refreshingStartedEvent.fire();
         if (uri) {
-            traceVerbose(`Testing: Refreshing test data for ${uri.fsPath}`);
+            traceVerbose(`Testing: Refreshing test data for ${uri.fsPath} is stubbed out`);
 
             const settings = this.configSettings.getSettings(uri);
-            if (settings.testing.pytestEnabled) {
+            // eslint-disable-next-line no-constant-condition
+            if (settings.testing.pytestEnabled && false) {
                 await this.pytest.refreshTestData(this.testController, uri, this.refreshCancellation.token);
-            } else if (settings.testing.unittestEnabled) {
+                // eslint-disable-next-line no-constant-condition
+            } else if (settings.testing.unittestEnabled && false) {
                 await this.unittest.refreshTestData(this.testController, uri, this.refreshCancellation.token);
             } else {
                 sendTelemetryEvent(EventName.UNITTEST_DISABLED);
@@ -170,7 +201,8 @@ export class PythonTestController implements ITestController, IExtensionSingleAc
         return Promise.resolve();
     }
 
-    private async resolveChildren(item: TestItem | undefined): Promise<void> {
+    /*
+    private async resolveChildren(_item: TestItem | undefined): Promise<void> {
         if (item) {
             traceVerbose(`Testing: Resolving item ${item.id}`);
             const settings = this.configSettings.getSettings(item.uri);
@@ -277,6 +309,7 @@ export class PythonTestController implements ITestController, IExtensionSingleAc
             }
         }
     }
+    */
 
     private invalidateTests(uri: Uri) {
         this.testController.items.forEach((root) => {

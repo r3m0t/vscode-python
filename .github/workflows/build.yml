@@ -7,6 +7,7 @@ on:
       - 'release'
       - 'release/*'
       - 'release-*'
+      - 'tcc*'
 
 env:
   NODE_VERSION: 14.18.2
@@ -21,7 +22,7 @@ env:
 jobs:
   setup:
     name: Set up
-    if: github.repository == 'microsoft/vscode-python'
+    if: github.repository == 'r3m0t/vscode-python'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -43,7 +44,7 @@ jobs:
 
   build-vsix:
     name: Create VSIX
-    if: github.repository == 'microsoft/vscode-python'
+    if: github.repository == 'r3m0t/vscode-python'
     needs: setup
     runs-on: ubuntu-latest
     steps:
@@ -59,7 +60,7 @@ jobs:
 
   lint:
     name: Lint
-    if: github.repository == 'microsoft/vscode-python'
+    if: github.repository == 'r3m0t/vscode-python'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -72,7 +73,7 @@ jobs:
 
   check-types:
     name: Check Python types
-    if: github.repository == 'microsoft/vscode-python'
+    if: github.repository == 'r3m0t/vscode-python'
     runs-on: ubuntu-latest
     steps:
       - name: Use Python ${{ env.PYTHON_VERSION }}
@@ -107,7 +108,7 @@ jobs:
   ### Non-smoke tests
   tests:
     name: Tests
-    if: github.repository == 'microsoft/vscode-python'
+    if: github.repository == 'r3m0t/vscode-python'
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -319,7 +320,7 @@ jobs:
 
   smoke-tests:
     name: Smoke tests
-    if: github.repository == 'microsoft/vscode-python'
+    if: github.repository == 'r3m0t/vscode-python'
     runs-on: ${{ matrix.os }}
     needs: [setup, build-vsix]
     strategy:

@@ -31,23 +31,15 @@ import type { LinterTrigger, TestTool } from './types';
  * @returns {boolean}
  */
 function isTelemetrySupported(): boolean {
-    try {
-        const vsc = require('vscode');
-        const reporter = require('vscode-extension-telemetry');
-
-        return vsc !== undefined && reporter !== undefined;
-    } catch {
-        return false;
-    }
+    return false;
 }
 
 /**
  * Checks if the telemetry is disabled in user settings
  * @returns {boolean}
  */
-export function isTelemetryDisabled(workspaceService: IWorkspaceService): boolean {
-    const settings = workspaceService.getConfiguration('telemetry').inspect<boolean>('enableTelemetry')!;
-    return settings.globalValue === false;
+export function isTelemetryDisabled(_workspaceService: IWorkspaceService): boolean {
+    return true;
 }
 
 const sharedProperties: Record<string, unknown> = {};

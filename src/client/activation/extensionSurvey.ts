@@ -54,6 +54,7 @@ export class ExtensionSurveyPrompt implements IExtensionSingleActivationService 
 
     @traceDecoratorError('Failed to check whether to display prompt for extension survey')
     public shouldShowBanner(): boolean {
+        return false;
         if (env.uiKind === UIKind?.Web) {
             return false;
         }
