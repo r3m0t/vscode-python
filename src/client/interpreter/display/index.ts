@@ -1,13 +1,5 @@
 import { inject, injectable } from 'inversify';
-import {
-    Disposable,
-    LanguageStatusItem,
-    LanguageStatusSeverity,
-    StatusBarAlignment,
-    StatusBarItem,
-    ThemeColor,
-    Uri,
-} from 'vscode';
+import { Disposable, LanguageStatusItem, LanguageStatusSeverity, StatusBarItem, ThemeColor, Uri } from 'vscode';
 import { IExtensionSingleActivationService } from '../../activation/types';
 import { IApplicationShell, IWorkspaceService } from '../../common/application/types';
 import { Commands, PYTHON_LANGUAGE } from '../../common/constants';
@@ -24,6 +16,7 @@ import {
     IInterpreterStatusbarVisibilityFilter,
 } from '../contracts';
 import * as nls from 'vscode-nls';
+import { MockStatusBarItem } from '../../../test/mockClasses';
 
 const localize: nls.LocalizeFunc = nls.loadMessageBundle();
 
@@ -80,8 +73,8 @@ export class InterpreterDisplay implements IInterpreterDisplay, IExtensionSingle
             };
             this.disposableRegistry.push(this.languageStatus);
         } else {
-            const [alignment, priority] = [StatusBarAlignment.Right, STATUS_BAR_ITEM_PRIORITY];
-            this.statusBar = application.createStatusBarItem(alignment, priority);
+            // const [alignment, priority] = [StatusBarAlignment.Right, STATUS_BAR_ITEM_PRIORITY];
+            this.statusBar = new MockStatusBarItem();
             this.statusBar.command = Commands.Set_Interpreter;
             this.disposableRegistry.push(this.statusBar);
         }

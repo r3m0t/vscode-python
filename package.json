@@ -264,11 +264,6 @@
             },
             {
                 "category": "Python",
-                "command": "python.configureTests",
-                "title": "%python.command.python.configureTests.title%"
-            },
-            {
-                "category": "Python",
                 "command": "python.createTerminal",
                 "title": "%python.command.python.createTerminal.title%"
             },
@@ -325,17 +320,6 @@
                 "enablement": "python.hasActiveTensorBoardSession",
                 "icon": "$(refresh)",
                 "title": "%python.command.python.refreshTensorBoard.title%"
-            },
-            {
-                "category": "Python",
-                "command": "python.reportIssue",
-                "title": "%python.command.python.reportIssue.title%"
-            },
-            {
-                "category": "Test",
-                "command": "testing.reRunFailTests",
-                "icon": "$(run-errors)",
-                "title": "%python.command.testing.rerunFailedTests.title%"
             },
             {
                 "category": "Python",
@@ -1537,12 +1521,6 @@
                 },
                 {
                     "category": "Python",
-                    "command": "python.configureTests",
-                    "title": "%python.command.python.configureTests.title%",
-                    "when": "!virtualWorkspace && shellExecutionSupported"
-                },
-                {
-                    "category": "Python",
                     "command": "python.createTerminal",
                     "title": "%python.command.python.createTerminal.title%",
                     "when": "!virtualWorkspace && shellExecutionSupported"
@@ -1615,13 +1593,6 @@
                     "category": "Python",
                     "command": "python.reportIssue",
                     "title": "%python.command.python.reportIssue.title%",
-                    "when": "!virtualWorkspace && shellExecutionSupported"
-                },
-                {
-                    "category": "Test",
-                    "command": "testing.reRunFailTests",
-                    "icon": "$(run-errors)",
-                    "title": "%python.command.testing.rerunFailedTests.title%",
                     "when": "!virtualWorkspace && shellExecutionSupported"
                 },
                 {
@@ -1720,19 +1691,9 @@
                 }
             ],
             "view/title": [
-                {
-                    "command": "testing.reRunFailTests",
-                    "when": "view == workbench.view.testing && hasFailedTests && !virtualWorkspace && shellExecutionSupported",
-                    "group": "navigation@1"
-                }
             ]
         },
         "viewsWelcome": [
-            {
-                "view": "testing",
-                "contents": "Configure a test framework to see your tests here.\n[Configure Python Tests](command:python.configureTests)",
-                "when": "!virtualWorkspace && shellExecutionSupported"
-            }
         ],
         "yamlValidation": [
             {

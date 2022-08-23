@@ -84,7 +84,41 @@ export class PythonTestController implements ITestController, IExtensionSingleAc
     ) {
         this.refreshCancellation = new CancellationTokenSource();
 
-        this.testController = tests.createTestController('python-tests', 'Python Tests');
+        this.testController = {
+            items: {
+                add() {
+                    throw new Error('testController items add');
+                },
+                replace() {
+                    throw new Error('testController items replace');
+                },
+                get() {
+                    return undefined;
+                },
+                delete() {
+                    /* noop */
+                },
+                size: 0,
+                forEach() {
+                    /* noop */
+                },
+            },
+            id: '',
+            label: '',
+            dispose() {
+                /* noop */
+            },
+            createRunProfile() {
+                throw new Error('TestController.createRunProfile');
+            },
+            createTestItem() {
+                throw new Error('TestController.createTestItem');
+            },
+            createTestRun() {
+                throw new Error('TestController.createTestRun');
+            },
+        } as TestController; // tests.createTestController('python-tests', 'Python Tests');
+
         this.disposables.push(this.testController);
 
         const delayTrigger = new DelayedTrigger(
@@ -100,38 +134,38 @@ export class PythonTestController implements ITestController, IExtensionSingleAc
         this.disposables.push(delayTrigger);
         this.refreshData = delayTrigger;
 
-        this.disposables.push(
-            this.testController.createRunProfile(
-                'Run Tests',
-                TestRunProfileKind.Run,
-                this.runTests.bind(this),
-                true,
-                RunTestTag,
-            ),
-            this.testController.createRunProfile(
-                'Debug Tests',
-                TestRunProfileKind.Debug,
-                this.runTests.bind(this),
-                true,
-                DebugTestTag,
-            ),
-        );
-        this.testController.resolveHandler = this.resolveChildren.bind(this);
-        this.testController.refreshHandler = (token: CancellationToken) => {
-            this.disposables.push(
-                token.onCancellationRequested(() => {
-                    traceVerbose('Testing: Stop refreshing triggered');
-                    sendTelemetryEvent(EventName.UNITTEST_DISCOVERING_STOP);
-                    this.stopRefreshing();
-                }),
-            );
+        // this.disposables.push(
+        //     this.testController.createRunProfile(
+        //         'Run Tests',
+        //         TestRunProfileKind.Run,
+        //         this.runTests.bind(this),
+        //         true,
+        //         RunTestTag,
+        //     ),
+        //     this.testController.createRunProfile(
+        //         'Debug Tests',
+        //         TestRunProfileKind.Debug,
+        //         this.runTests.bind(this),
+        //         true,
+        //         DebugTestTag,
+        //     ),
+        // );
+        // this.testController.resolveHandler = this.resolveChildren.bind(this);
+        // this.testController.refreshHandler = (token: CancellationToken) => {
+        //     this.disposables.push(
+        //         token.onCancellationRequested(() => {
+        //             traceVerbose('Testing: Stop refreshing triggered');
+        //             sendTelemetryEvent(EventName.UNITTEST_DISCOVERING_STOP);
+        //             this.stopRefreshing();
+        //         }),
+        //     );
 
-            traceVerbose('Testing: Manually triggered test refresh');
-            sendTelemetryEvent(EventName.UNITTEST_DISCOVERY_TRIGGER, undefined, {
-                trigger: constants.CommandSource.commandPalette,
-            });
-            return this.refreshTestData(undefined, { forceRefresh: true });
-        };
+        //     traceVerbose('Testing: Manually triggered test refresh');
+        //     sendTelemetryEvent(EventName.UNITTEST_DISCOVERY_TRIGGER, undefined, {
+        //         trigger: constants.CommandSource.commandPalette,
+        //     });
+        //     return this.refreshTestData(undefined, { forceRefresh: true });
+        // };
 
         this.pythonTestServer = new PythonTestServer(this.pythonExecFactory);
     }
@@ -140,29 +174,30 @@ export class PythonTestController implements ITestController, IExtensionSingleAc
         const workspaces: readonly WorkspaceFolder[] = this.workspaceService.workspaceFolders || [];
         workspaces.forEach((workspace) => {
             console.warn(`instantiating test adapters - workspace name: ${workspace.name}`);
-            const settings = this.configSettings.getSettings(workspace.uri);
 
-            let discoveryAdapter: ITestDiscoveryAdapter;
-            let testProvider: TestProvider;
-            if (settings.testing.unittestEnabled) {
-                discoveryAdapter = new UnittestTestDiscoveryAdapter(this.pythonTestServer, this.configSettings);
-                testProvider = UNITTEST_PROVIDER;
-            } else {
-                // TODO: PYTEST DISCOVERY ADAPTER
-                // this is a placeholder for now
-                discoveryAdapter = new UnittestTestDiscoveryAdapter(this.pythonTestServer, { ...this.configSettings });
-                testProvider = PYTEST_PROVIDER;
-            }
+            // const settings = this.configSettings.getSettings(workspace.uri);
 
-            const workspaceTestAdapter = new WorkspaceTestAdapter(testProvider, discoveryAdapter, workspace.uri);
+            // let discoveryAdapter: ITestDiscoveryAdapter;
+            // let testProvider: TestProvider;
+            // if (settings.testing.unittestEnabled) {
+            //     discoveryAdapter = new UnittestTestDiscoveryAdapter(this.pythonTestServer, this.configSettings);
+            //     testProvider = UNITTEST_PROVIDER;
+            // } else {
+            //     // TODO: PYTEST DISCOVERY ADAPTER
+            //     // this is a placeholder for now
+            //     discoveryAdapter = new UnittestTestDiscoveryAdapter(this.pythonTestServer, { ...this.configSettings });
+            //     testProvider = PYTEST_PROVIDER;
+            // }
 
-            this.testAdapters.set(workspace.uri, workspaceTestAdapter);
+            // const workspaceTestAdapter = new WorkspaceTestAdapter(testProvider, discoveryAdapter, workspace.uri);
 
-            if (settings.testing.autoTestDiscoverOnSaveEnabled) {
-                traceVerbose(`Testing: Setting up watcher for ${workspace.uri.fsPath}`);
-                this.watchForSettingsChanges(workspace);
-                this.watchForTestContentChanges(workspace);
-            }
+            // this.testAdapters.set(workspace.uri, workspaceTestAdapter);
+
+            // if (settings.testing.autoTestDiscoverOnSaveEnabled) {
+            //     traceVerbose(`Testing: Setting up watcher for ${workspace.uri.fsPath}`);
+            //     this.watchForSettingsChanges(workspace);
+            //     this.watchForTestContentChanges(workspace);
+            // }
         });
     }
 
@@ -268,6 +303,7 @@ export class PythonTestController implements ITestController, IExtensionSingleAc
         return Promise.resolve();
     }
 
+    /*
     private async resolveChildren(item: TestItem | undefined): Promise<void> {
         if (item) {
             traceVerbose(`Testing: Resolving item ${item.id}`);
@@ -389,6 +425,7 @@ export class PythonTestController implements ITestController, IExtensionSingleAc
             }
         }
     }
+    */
 
     private invalidateTests(uri: Uri) {
         this.testController.items.forEach((root) => {
