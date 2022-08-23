@@ -1,60 +1,36 @@
+/* eslint-disable class-methods-use-this */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 import { inject, injectable, named } from 'inversify';
-import { uniq } from 'lodash';
-import {
-    CancellationToken,
-    TestController,
-    TestItem,
-    TestRunRequest,
-    tests,
-    WorkspaceFolder,
-    RelativePattern,
-    TestRunProfileKind,
-    CancellationTokenSource,
-    Uri,
-    EventEmitter,
-} from 'vscode';
+import { TestController, TestItem, WorkspaceFolder, CancellationTokenSource, Uri, EventEmitter } from 'vscode';
 import { IExtensionSingleActivationService } from '../../activation/types';
 import { ICommandManager, IWorkspaceService } from '../../common/application/types';
 import * as constants from '../../common/constants';
-import { IPythonExecutionFactory } from '../../common/process/types';
 import { IConfigurationService, IDisposableRegistry, Resource } from '../../common/types';
 import { DelayedTrigger, IDelayedTrigger } from '../../common/utils/delayTrigger';
 import { noop } from '../../common/utils/misc';
 import { IInterpreterService } from '../../interpreter/contracts';
-import { traceError, traceVerbose } from '../../logging';
-import { IEventNamePropertyMapping, sendTelemetryEvent } from '../../telemetry';
+import { traceVerbose } from '../../logging';
+import { sendTelemetryEvent } from '../../telemetry';
 import { EventName } from '../../telemetry/constants';
 import { PYTEST_PROVIDER, UNITTEST_PROVIDER } from '../common/constants';
-import { TestProvider } from '../types';
-import { PythonTestServer } from './common/server';
-import { DebugTestTag, getNodeByUri, RunTestTag } from './common/testItemUtilities';
-import {
-    ITestController,
-    ITestDiscoveryAdapter,
-    ITestFrameworkController,
-    TestRefreshOptions,
-    ITestExecutionAdapter,
-} from './common/types';
-import { UnittestTestDiscoveryAdapter } from './unittest/testDiscoveryAdapter';
-import { WorkspaceTestAdapter } from './workspaceTestAdapter';
-import { UnittestTestExecutionAdapter } from './unittest/testExecutionAdapter';
-import { ITestDebugLauncher } from '../common/types';
+import { ITestController, ITestFrameworkController, TestRefreshOptions } from './common/types';
+import { getNodeByUri } from './common/testItemUtilities';
 
 // Types gymnastics to make sure that sendTriggerTelemetry only accepts the correct types.
-type EventPropertyType = IEventNamePropertyMapping[EventName.UNITTEST_DISCOVERY_TRIGGER];
-type TriggerKeyType = keyof EventPropertyType;
-type TriggerType = EventPropertyType[TriggerKeyType];
+// type EventPropertyType = IEventNamePropertyMapping[EventName.UNITTEST_DISCOVERY_TRIGGER];
+// type TriggerKeyType = keyof EventPropertyType;
+// type TriggerType = EventPropertyType[TriggerKeyType];
 
 @injectable()
 export class PythonTestController implements ITestController, IExtensionSingleActivationService {
     public readonly supportedWorkspaceTypes = { untrustedWorkspace: false, virtualWorkspace: false };
 
-    private readonly testAdapters: Map<Uri, WorkspaceTestAdapter> = new Map();
+    // private readonly testAdapters: Map<Uri, WorkspaceTestAdapter> = new Map();
 
-    private readonly triggerTypes: TriggerType[] = [];
+    // private readonly triggerTypes: TriggerType[] = [];
 
     private readonly testController: TestController;
 
@@ -69,8 +45,6 @@ export class PythonTestController implements ITestController, IExtensionSingleAc
     private readonly runWithoutConfigurationEvent: EventEmitter<WorkspaceFolder[]> = new EventEmitter<
         WorkspaceFolder[]
     >();
-
-    private pythonTestServer: PythonTestServer;
 
     public readonly onRefreshingCompleted = this.refreshingCompletedEvent.event;
 
@@ -88,12 +62,47 @@ export class PythonTestController implements ITestController, IExtensionSingleAc
         @inject(IDisposableRegistry) private readonly disposables: IDisposableRegistry,
         @inject(IInterpreterService) private readonly interpreterService: IInterpreterService,
         @inject(ICommandManager) private readonly commandManager: ICommandManager,
-        @inject(IPythonExecutionFactory) private readonly pythonExecFactory: IPythonExecutionFactory,
-        @inject(ITestDebugLauncher) private readonly debugLauncher: ITestDebugLauncher,
     ) {
         this.refreshCancellation = new CancellationTokenSource();
 
-        this.testController = tests.createTestController('python-tests', 'Python Tests');
+        this.testController = {
+            items: {
+                add() {
+                    throw new Error('testController items add');
+                },
+                replace() {
+                    throw new Error('testController items replace');
+                },
+                get() {
+                    return undefined;
+                },
+                delete() {
+                    /* noop */
+                },
+                size: 0,
+                forEach() {
+                    /* noop */
+                },
+            },
+            id: '',
+            label: '',
+            dispose() {
+                /* noop */
+            },
+            createRunProfile() {
+                throw new Error('TestController.createRunProfile');
+            },
+            createTestItem() {
+                throw new Error('TestController.createTestItem');
+            },
+            createTestRun() {
+                throw new Error('TestController.createTestRun');
+            },
+            refreshHandler() {
+                throw new Error('TestController.refreshHandler');
+            },
+        } as TestController; // tests.createTestController('python-tests', 'Python Tests');
+
         this.disposables.push(this.testController);
 
         const delayTrigger = new DelayedTrigger(
@@ -108,81 +117,10 @@ export class PythonTestController implements ITestController, IExtensionSingleAc
         );
         this.disposables.push(delayTrigger);
         this.refreshData = delayTrigger;
-
-        this.disposables.push(
-            this.testController.createRunProfile(
-                'Run Tests',
-                TestRunProfileKind.Run,
-                this.runTests.bind(this),
-                true,
-                RunTestTag,
-            ),
-            this.testController.createRunProfile(
-                'Debug Tests',
-                TestRunProfileKind.Debug,
-                this.runTests.bind(this),
-                true,
-                DebugTestTag,
-            ),
-        );
-        this.testController.resolveHandler = this.resolveChildren.bind(this);
-        this.testController.refreshHandler = (token: CancellationToken) => {
-            this.disposables.push(
-                token.onCancellationRequested(() => {
-                    traceVerbose('Testing: Stop refreshing triggered');
-                    sendTelemetryEvent(EventName.UNITTEST_DISCOVERING_STOP);
-                    this.stopRefreshing();
-                }),
-            );
-
-            traceVerbose('Testing: Manually triggered test refresh');
-            sendTelemetryEvent(EventName.UNITTEST_DISCOVERY_TRIGGER, undefined, {
-                trigger: constants.CommandSource.commandPalette,
-            });
-            return this.refreshTestData(undefined, { forceRefresh: true });
-        };
-
-        this.pythonTestServer = new PythonTestServer(this.pythonExecFactory, this.debugLauncher);
     }
 
-    public async activate(): Promise<void> {
-        traceVerbose('Waiting for test server to start...');
-        await this.pythonTestServer.serverReady();
-        traceVerbose('Test server started.');
-        const workspaces: readonly WorkspaceFolder[] = this.workspaceService.workspaceFolders || [];
-        workspaces.forEach((workspace) => {
-            const settings = this.configSettings.getSettings(workspace.uri);
-
-            let discoveryAdapter: ITestDiscoveryAdapter;
-            let executionAdapter: ITestExecutionAdapter;
-            let testProvider: TestProvider;
-            if (settings.testing.unittestEnabled) {
-                discoveryAdapter = new UnittestTestDiscoveryAdapter(this.pythonTestServer, this.configSettings);
-                executionAdapter = new UnittestTestExecutionAdapter(this.pythonTestServer, this.configSettings);
-                testProvider = UNITTEST_PROVIDER;
-            } else {
-                // TODO: PYTEST DISCOVERY ADAPTER
-                // this is a placeholder for now
-                discoveryAdapter = new UnittestTestDiscoveryAdapter(this.pythonTestServer, { ...this.configSettings });
-                executionAdapter = new UnittestTestExecutionAdapter(this.pythonTestServer, this.configSettings);
-                testProvider = PYTEST_PROVIDER;
-            }
-
-            const workspaceTestAdapter = new WorkspaceTestAdapter(
-                testProvider,
-                discoveryAdapter,
-                executionAdapter,
-                workspace.uri,
-            );
-
-            this.testAdapters.set(workspace.uri, workspaceTestAdapter);
-
-            if (settings.testing.autoTestDiscoverOnSaveEnabled) {
-                traceVerbose(`Testing: Setting up watcher for ${workspace.uri.fsPath}`);
-                this.watchForSettingsChanges(workspace);
-                this.watchForTestContentChanges(workspace);
-            }
-        });
+    public activate(): Promise<void> {
+        return Promise.resolve();
     }
 
     public refreshTestData(uri?: Resource, options?: TestRefreshOptions): Promise<void> {
@@ -287,6 +225,7 @@ export class PythonTestController implements ITestController, IExtensionSingleAc
         return Promise.resolve();
     }
 
+    /*
     private async resolveChildren(item: TestItem | undefined): Promise<void> {
         if (item) {
             traceVerbose(`Testing: Resolving item ${item.id}`);
@@ -423,6 +362,7 @@ export class PythonTestController implements ITestController, IExtensionSingleAc
             }
         }
     }
+    */
 
     private invalidateTests(uri: Uri) {
         this.testController.items.forEach((root) => {
@@ -433,76 +373,5 @@ export class PythonTestController implements ITestController, IExtensionSingleAc
                 item.invalidateResults();
             }
         });
-    }
-
-    private watchForSettingsChanges(workspace: WorkspaceFolder): void {
-        const pattern = new RelativePattern(workspace, '**/{settings.json,pytest.ini,pyproject.toml,setup.cfg}');
-        const watcher = this.workspaceService.createFileSystemWatcher(pattern);
-        this.disposables.push(watcher);
-
-        this.disposables.push(
-            watcher.onDidChange((uri) => {
-                traceVerbose(`Testing: Trigger refresh after change in ${uri.fsPath}`);
-                this.sendTriggerTelemetry('watching');
-                this.refreshData.trigger(uri, false);
-            }),
-        );
-        this.disposables.push(
-            watcher.onDidCreate((uri) => {
-                traceVerbose(`Testing: Trigger refresh after creating ${uri.fsPath}`);
-                this.sendTriggerTelemetry('watching');
-                this.refreshData.trigger(uri, false);
-            }),
-        );
-        this.disposables.push(
-            watcher.onDidDelete((uri) => {
-                traceVerbose(`Testing: Trigger refresh after deleting in ${uri.fsPath}`);
-                this.sendTriggerTelemetry('watching');
-                this.refreshData.trigger(uri, false);
-            }),
-        );
-    }
-
-    private watchForTestContentChanges(workspace: WorkspaceFolder): void {
-        const pattern = new RelativePattern(workspace, '**/*.py');
-        const watcher = this.workspaceService.createFileSystemWatcher(pattern);
-        this.disposables.push(watcher);
-
-        this.disposables.push(
-            watcher.onDidChange((uri) => {
-                traceVerbose(`Testing: Trigger refresh after change in ${uri.fsPath}`);
-                this.sendTriggerTelemetry('watching');
-                // We want to invalidate tests for code change
-                this.refreshData.trigger(uri, true);
-            }),
-        );
-        this.disposables.push(
-            watcher.onDidCreate((uri) => {
-                traceVerbose(`Testing: Trigger refresh after creating ${uri.fsPath}`);
-                this.sendTriggerTelemetry('watching');
-                this.refreshData.trigger(uri, false);
-            }),
-        );
-        this.disposables.push(
-            watcher.onDidDelete((uri) => {
-                traceVerbose(`Testing: Trigger refresh after deleting in ${uri.fsPath}`);
-                this.sendTriggerTelemetry('watching');
-                this.refreshData.trigger(uri, false);
-            }),
-        );
-    }
-
-    /**
-     * Send UNITTEST_DISCOVERY_TRIGGER telemetry event only once per trigger type.
-     *
-     * @param triggerType The trigger type to send telemetry for.
-     */
-    private sendTriggerTelemetry(trigger: TriggerType): void {
-        if (!this.triggerTypes.includes(trigger)) {
-            sendTelemetryEvent(EventName.UNITTEST_DISCOVERY_TRIGGER, undefined, {
-                trigger,
-            });
-            this.triggerTypes.push(trigger);
-        }
     }
 }
