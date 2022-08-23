@@ -24,7 +24,7 @@ const localize: nls.LocalizeFunc = nls.loadMessageBundle();
  * Based on https://github.com/microsoft/vscode-python/issues/18040#issuecomment-992567670.
  * This is to ensure the item appears right after the Python language status item.
  */
-const STATUS_BAR_ITEM_PRIORITY = 100.09999;
+// const STATUS_BAR_ITEM_PRIORITY = 100.09999;
 @injectable()
 export class InterpreterDisplay implements IInterpreterDisplay, IExtensionSingleActivationService {
     public supportedWorkspaceTypes: { untrustedWorkspace: boolean; virtualWorkspace: boolean } = {
