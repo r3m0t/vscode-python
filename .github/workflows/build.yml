@@ -348,7 +348,7 @@ jobs:
       BLOB_NAME: ms-python-insiders.vsix
     steps:
       - name: Download VSIX
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{ needs.setup.outputs.vsix_artifact_name }}
       - name: Azure Login
