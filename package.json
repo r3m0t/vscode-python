@@ -1401,7 +1401,7 @@
                 "variables": {
                     "pickProcess": "python.pickLocalProcess"
                 },
-                "when": "shellExecutionSupported"
+                "when": "pythonfork.debugger1 && shellExecutionSupported"
             }
         ],
         "grammars": [
@@ -1643,23 +1643,23 @@
                 {
                     "command": "python.execInTerminal",
                     "group": "Python",
-                    "when": "resourceLangId == python && !virtualWorkspace && shellExecutionSupported"
+                    "when": "pythonfork.editorcontext1 && resourceLangId == python && !virtualWorkspace && shellExecutionSupported"
                 },
                 {
                     "command": "python.execSelectionInDjangoShell",
                     "group": "Python",
-                    "when": "editorHasSelection && editorLangId == python && python.isDjangoProject && !virtualWorkspace && shellExecutionSupported"
+                    "when": "pythonfork.editorcontext2 && editorHasSelection && editorLangId == python && python.isDjangoProject && !virtualWorkspace && shellExecutionSupported"
                 },
                 {
                     "command": "python.execSelectionInTerminal",
                     "group": "Python",
-                    "when": "editorFocus && editorLangId == python && !virtualWorkspace && shellExecutionSupported"
+                    "when": "pythonfork.editorcontext3 && editorFocus && editorLangId == python && !virtualWorkspace && shellExecutionSupported"
                 },
                 {
                     "command": "python.sortImports",
                     "group": "Refactor",
                     "title": "Refactor: Sort Imports",
-                    "when": "editorLangId == python && !notebookEditorFocused && !virtualWorkspace && shellExecutionSupported"
+                    "when": "pythonfork.editorcontext4 && editorLangId == python && !notebookEditorFocused && !virtualWorkspace && shellExecutionSupported"
                 }
             ],
             "editor/title": [
@@ -1674,20 +1674,20 @@
                     "command": "python.execInTerminal-icon",
                     "group": "navigation@0",
                     "title": "%python.command.python.execInTerminalIcon.title%",
-                    "when": "resourceLangId == python && !isInDiffEditor && !virtualWorkspace && shellExecutionSupported"
+                    "when": "pythonfork.editortitle1 && resourceLangId == python && !isInDiffEditor && !virtualWorkspace && shellExecutionSupported"
                 },
                 {
                     "command": "python.debugInTerminal",
                     "group": "navigation@1",
                     "title": "%python.command.python.debugInTerminal.title%",
-                    "when": "resourceLangId == python && !isInDiffEditor && !virtualWorkspace && shellExecutionSupported"
+                    "when": "pythonfork.editortitle2 && resourceLangId == python && !isInDiffEditor && !virtualWorkspace && shellExecutionSupported"
                 }
             ],
             "explorer/context": [
                 {
                     "command": "python.execInTerminal",
                     "group": "Python",
-                    "when": "resourceLangId == python && !virtualWorkspace && shellExecutionSupported"
+                    "when": "pythonfork.explorercontext && resourceLangId == python && !virtualWorkspace && shellExecutionSupported"
                 }
             ],
             "view/title": [
