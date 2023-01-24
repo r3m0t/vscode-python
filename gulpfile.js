@@ -80,12 +80,12 @@ gulp.task('addExtensionPackDependencies', async () => {
 async function addExtensionPackDependencies() {
     // Update the package.json to add extension pack dependencies at build time so that
     // extension dependencies need not be installed during development
-    const packageJsonContents = await fsExtra.readFile('package.json', 'utf-8');
-    const packageJson = JSON.parse(packageJsonContents);
-    packageJson.extensionPack = ['ms-toolsai.jupyter', 'ms-python.vscode-pylance', 'ms-python.isort'].concat(
-        packageJson.extensionPack ? packageJson.extensionPack : [],
-    );
-    await fsExtra.writeFile('package.json', JSON.stringify(packageJson, null, 4), 'utf-8');
+    // const packageJsonContents = await fsExtra.readFile('package.json', 'utf-8');
+    // const packageJson = JSON.parse(packageJsonContents);
+    // packageJson.extensionPack = ['ms-toolsai.jupyter', 'ms-python.vscode-pylance', 'ms-python.isort'].concat(
+    //     packageJson.extensionPack ? packageJson.extensionPack : [],
+    // );
+    // await fsExtra.writeFile('package.json', JSON.stringify(packageJson, null, 4), 'utf-8');
 }
 
 async function buildLicense() {
