@@ -2,7 +2,7 @@
     "name": "python",
     "displayName": "Python",
     "description": "IntelliSense (Pylance), Linting, Debugging (multi-threaded, remote), Jupyter Notebooks, code formatting, refactoring, unit tests, and more.",
-    "version": "2022.20.1",
+    "version": "8022.20.1",
     "featureFlags": {
         "usingNewInterpreterStorage": true
     },
@@ -273,11 +273,6 @@
             },
             {
                 "category": "Python",
-                "command": "python.configureTests",
-                "title": "%python.command.python.configureTests.title%"
-            },
-            {
-                "category": "Python",
                 "command": "python.createTerminal",
                 "title": "%python.command.python.createTerminal.title%"
             },
@@ -334,17 +329,6 @@
                 "enablement": "python.hasActiveTensorBoardSession",
                 "icon": "$(refresh)",
                 "title": "%python.command.python.refreshTensorBoard.title%"
-            },
-            {
-                "category": "Python",
-                "command": "python.reportIssue",
-                "title": "%python.command.python.reportIssue.title%"
-            },
-            {
-                "category": "Test",
-                "command": "testing.reRunFailTests",
-                "icon": "$(run-errors)",
-                "title": "%python.command.testing.rerunFailedTests.title%"
             },
             {
                 "category": "Python",
@@ -1424,7 +1408,7 @@
                 "variables": {
                     "pickProcess": "python.pickLocalProcess"
                 },
-                "when": "!virtualWorkspace && shellExecutionSupported"
+                "when": "pythonfork.debugger1 && shellExecutionSupported"
             }
         ],
         "grammars": [
@@ -1544,12 +1528,6 @@
                 },
                 {
                     "category": "Python",
-                    "command": "python.configureTests",
-                    "title": "%python.command.python.configureTests.title%",
-                    "when": "!virtualWorkspace && shellExecutionSupported"
-                },
-                {
-                    "category": "Python",
                     "command": "python.createEnvironment",
                     "title": "%python.command.python.createEnvironment.title%",
                     "when": "!virtualWorkspace && shellExecutionSupported"
@@ -1620,19 +1598,6 @@
                 },
                 {
                     "category": "Python",
-                    "command": "python.reportIssue",
-                    "title": "%python.command.python.reportIssue.title%",
-                    "when": "!virtualWorkspace && shellExecutionSupported && editorLangId == python"
-                },
-                {
-                    "category": "Test",
-                    "command": "testing.reRunFailTests",
-                    "icon": "$(run-errors)",
-                    "title": "%python.command.testing.rerunFailedTests.title%",
-                    "when": "!virtualWorkspace && shellExecutionSupported"
-                },
-                {
-                    "category": "Python",
                     "command": "python.runLinting",
                     "title": "%python.command.python.runLinting.title%",
                     "when": "!virtualWorkspace && shellExecutionSupported && editorLangId == python"
@@ -1679,23 +1644,23 @@
                 {
                     "command": "python.execInTerminal",
                     "group": "Python",
-                    "when": "resourceLangId == python && !virtualWorkspace && shellExecutionSupported"
+                    "when": "pythonfork.editorcontext1 && resourceLangId == python && !virtualWorkspace && shellExecutionSupported"
                 },
                 {
                     "command": "python.execSelectionInDjangoShell",
                     "group": "Python",
-                    "when": "editorHasSelection && editorLangId == python && python.isDjangoProject && !virtualWorkspace && shellExecutionSupported"
+                    "when": "pythonfork.editorcontext2 && editorHasSelection && editorLangId == python && python.isDjangoProject && !virtualWorkspace && shellExecutionSupported"
                 },
                 {
                     "command": "python.execSelectionInTerminal",
                     "group": "Python",
-                    "when": "editorFocus && editorLangId == python && !virtualWorkspace && shellExecutionSupported"
+                    "when": "pythonfork.editorcontext3 && editorFocus && editorLangId == python && !virtualWorkspace && shellExecutionSupported"
                 },
                 {
                     "command": "python.sortImports",
                     "group": "Refactor",
                     "title": "%python.command.python.sortImports.title%",
-                    "when": "editorLangId == python && !notebookEditorFocused && !virtualWorkspace && shellExecutionSupported"
+                    "when": "pythonfork.editorcontext4 && editorLangId == python && !notebookEditorFocused && !virtualWorkspace && shellExecutionSupported"
                 }
             ],
             "editor/title": [
@@ -1710,20 +1675,20 @@
                     "command": "python.execInTerminal-icon",
                     "group": "navigation@0",
                     "title": "%python.command.python.execInTerminalIcon.title%",
-                    "when": "resourceLangId == python && !isInDiffEditor && !virtualWorkspace && shellExecutionSupported"
+                    "when": "pythonfork.editortitle1 && resourceLangId == python && !isInDiffEditor && !virtualWorkspace && shellExecutionSupported"
                 },
                 {
                     "command": "python.debugInTerminal",
                     "group": "navigation@1",
                     "title": "%python.command.python.debugInTerminal.title%",
-                    "when": "resourceLangId == python && !isInDiffEditor && !virtualWorkspace && shellExecutionSupported"
+                    "when": "pythonfork.editortitle2 && resourceLangId == python && !isInDiffEditor && !virtualWorkspace && shellExecutionSupported"
                 }
             ],
             "explorer/context": [
                 {
                     "command": "python.execInTerminal",
                     "group": "Python",
-                    "when": "resourceLangId == python && !virtualWorkspace && shellExecutionSupported"
+                    "when": "pythonfork.explorercontext && resourceLangId == python && !virtualWorkspace && shellExecutionSupported"
                 }
             ],
             "file/newFile": [
@@ -1734,19 +1699,9 @@
                 }
             ],
             "view/title": [
-                {
-                    "command": "testing.reRunFailTests",
-                    "when": "view == workbench.view.testing && hasFailedTests && !virtualWorkspace && shellExecutionSupported",
-                    "group": "navigation@1"
-                }
             ]
         },
         "viewsWelcome": [
-            {
-                "view": "testing",
-                "contents": "Configure a test framework to see your tests here.\n[Configure Python Tests](command:python.configureTests)",
-                "when": "!virtualWorkspace && shellExecutionSupported"
-            }
         ],
         "yamlValidation": [
             {

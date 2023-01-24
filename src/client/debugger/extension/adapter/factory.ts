@@ -93,14 +93,9 @@ export class DebugAdapterDescriptorFactory implements IDebugAdapterDescriptorFac
                 return new DebugAdapterExecutable(executable, args);
             }
 
-            const debuggerAdapterPathToUse = path.join(
-                EXTENSION_ROOT_DIR,
-                'pythonFiles',
-                'lib',
-                'python',
-                'debugpy',
-                'adapter',
-            );
+            const debuggerAdapterPathToUse =
+                process.env.DEBUGPY_ADAPTER_PATH ??
+                path.join(EXTENSION_ROOT_DIR, 'pythonFiles', 'lib', 'python', 'debugpy', 'adapter');
 
             const args = command.concat([debuggerAdapterPathToUse, ...logArgs]);
             traceLog(`DAP Server launched with command: ${executable} ${args.join(' ')}`);
