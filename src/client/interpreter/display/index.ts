@@ -1,14 +1,6 @@
 import { inject, injectable } from 'inversify';
-import {
-    Disposable,
-    l10n,
-    LanguageStatusItem,
-    LanguageStatusSeverity,
-    StatusBarAlignment,
-    StatusBarItem,
-    ThemeColor,
-    Uri,
-} from 'vscode';
+import { Disposable, l10n, LanguageStatusItem, LanguageStatusSeverity, StatusBarItem, ThemeColor, Uri } from 'vscode';
+import { MockStatusBarItem } from '../../../test/mockClasses';
 import { IExtensionSingleActivationService } from '../../activation/types';
 import { IApplicationShell, IWorkspaceService } from '../../common/application/types';
 import { Commands, PYTHON_LANGUAGE } from '../../common/constants';
@@ -29,7 +21,7 @@ import {
  * Based on https://github.com/microsoft/vscode-python/issues/18040#issuecomment-992567670.
  * This is to ensure the item appears right after the Python language status item.
  */
-const STATUS_BAR_ITEM_PRIORITY = 100.09999;
+// const STATUS_BAR_ITEM_PRIORITY = 100.09999;
 
 @injectable()
 export class InterpreterDisplay implements IInterpreterDisplay, IExtensionSingleActivationService {
@@ -79,8 +71,8 @@ export class InterpreterDisplay implements IInterpreterDisplay, IExtensionSingle
             };
             this.disposableRegistry.push(this.languageStatus);
         } else {
-            const [alignment, priority] = [StatusBarAlignment.Right, STATUS_BAR_ITEM_PRIORITY];
-            this.statusBar = application.createStatusBarItem(alignment, priority, 'python.selectedInterpreterDisplay');
+            // const [alignment, priority] = [StatusBarAlignment.Right, STATUS_BAR_ITEM_PRIORITY];
+            this.statusBar = new MockStatusBarItem();
             this.statusBar.command = Commands.Set_Interpreter;
             this.disposableRegistry.push(this.statusBar);
             this.statusBar.name = Interpreters.selectedPythonInterpreter;

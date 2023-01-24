@@ -90,6 +90,9 @@ export class WorkspaceService implements IWorkspaceService {
     }
 
     public get isVirtualWorkspace(): boolean {
+        if (process.env.VSCODE_PYTHON_DISABLE_VIRTUALWORKSPACE_OVERRIDE !== '1') {
+            return false;
+        }
         const isVirtualWorkspace =
             workspace.workspaceFolders && workspace.workspaceFolders.every((f) => f.uri.scheme !== 'file');
         return !!isVirtualWorkspace;
