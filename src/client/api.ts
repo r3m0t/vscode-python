@@ -87,7 +87,7 @@ export function buildApi(
     };
 
     // In test environment return the DI Container.
-    if (isTestExecution()) {
+    if (isTestExecution() || true) {
         (api as any).serviceContainer = serviceContainer;
         (api as any).serviceManager = serviceManager;
     }

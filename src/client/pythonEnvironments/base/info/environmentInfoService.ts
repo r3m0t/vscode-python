@@ -39,7 +39,7 @@ export interface IEnvironmentInfoService {
 
 async function buildEnvironmentInfo(
     env: PythonEnvInfo,
-    useIsolated = true,
+    useIsolated = false,
 ): Promise<InterpreterInformation | undefined> {
     const python = [env.executable.filename];
     if (useIsolated) {

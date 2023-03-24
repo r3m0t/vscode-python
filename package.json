@@ -1416,7 +1416,7 @@
                 "variables": {
                     "pickProcess": "python.pickLocalProcess"
                 },
-                "when": "pythonfork.debugger1 && shellExecutionSupported"
+                "when": "pythonfork.debugger1 || shellExecutionSupported"
             }
         ],
         "grammars": [
